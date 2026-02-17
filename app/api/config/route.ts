@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-// 配置文件路径
-const CONFIG_PATH = path.join(process.env.HOME || "", ".openclaw", "openclaw.json");
-const OPENCLAW_DIR = path.join(process.env.HOME || "", ".openclaw");
+// 配置文件路径：优先使用 OPENCLAW_HOME 环境变量，否则默认 ~/.openclaw
+const OPENCLAW_HOME = process.env.OPENCLAW_HOME || path.join(process.env.HOME || "", ".openclaw");
+const CONFIG_PATH = path.join(OPENCLAW_HOME, "openclaw.json");
+const OPENCLAW_DIR = OPENCLAW_HOME;
 
 // 从 IDENTITY.md 读取机器人名字
 function readIdentityName(agentId: string, agentDir?: string, workspace?: string): string | null {

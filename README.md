@@ -39,3 +39,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - Node.js 18+
 - OpenClaw installed with config at `~/.openclaw/openclaw.json`
+
+## Configuration
+
+By default, the dashboard reads config from `~/.openclaw/openclaw.json`. To use a custom path, set the `OPENCLAW_HOME` environment variable:
+
+```bash
+OPENCLAW_HOME=/opt/openclaw npm run dev
+```
