@@ -160,7 +160,13 @@ function AgentCard({ agent, gatewayPort, gatewayToken }: { agent: Agent; gateway
           <div className="pt-2 mt-2 border-t border-[var(--border)]">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[var(--text-muted)]">会话数</span>
-              <span className="text-[var(--text)]">{agent.session.sessionCount}</span>
+              <a
+                href={`/sessions?agent=${agent.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[var(--accent)] hover:underline cursor-pointer"
+              >
+                {agent.session.sessionCount} →
+              </a>
             </div>
             <div className="flex items-center justify-between text-xs mt-1">
               <span className="text-[var(--text-muted)]">Token 用量</span>
