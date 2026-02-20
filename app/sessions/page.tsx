@@ -5,6 +5,19 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 
+interface AgentInfo {
+  id: string;
+  name: string;
+  emoji: string;
+  model: string;
+  session?: {
+    lastActive: number | null;
+    totalTokens: number;
+    contextTokens: number;
+    sessionCount: number;
+  };
+}
+
 interface Session {
   key: string;
   type: string;
@@ -36,13 +49,117 @@ function formatTime(ts: number): string {
   return new Date(ts).toLocaleString("zh-CN");
 }
 
-export default function SessionsPage() {
-  const searchParams = useSearchParams();
-  const agentId = searchParams.get("agent") || "";
+/* ── Agent picker (no ?agent= param) ── */
+function AgentPicker() {
+  const [agents, setAgents] = useState<AgentInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { t } = useI18n();
+
+  function formatTimeAgo(ts: number): string {
+    if (!ts) return "-";
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return t("common.justNow");
+    if (mins < 60) return `${mins} ${t("common.minutesAgo")}`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} ${t("common.hoursAgo")}`;
+    const days = Math.floor(hours / 24);
+    return `${days} ${t("common.daysAgo")}`;
+  }
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) setError(data.error);
+        else setAgents(data.agents || []);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-[var(--text-muted)]">{t("common.loading")}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-400">{t("common.loadError")}: {error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen p-8 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">💬 {t("nav.sessions")}</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
+            {t("sessions.selectAgent")}
+          </p>
+        </div>
+        <Link
+          href="/"
+          className="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm hover:border-[var(--accent)] transition"
+        >
+          {t("common.backHome")}
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {agents.map((agent) => (
+          <Link
+            key={agent.id}
+            href={`/sessions?agent=${agent.id}`}
+            className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--accent)] transition cursor-pointer block"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">{agent.emoji}</span>
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text)]">{agent.name}</h3>
+                {agent.name !== agent.id && (
+                  <span className="text-xs text-[var(--text-muted)]">{agent.id}</span>
+                )}
+              </div>
+            </div>
+            {agent.session && (
+              <div className="space-y-1 text-xs text-[var(--text-muted)]">
+                <div className="flex justify-between">
+                  <span>{t("agent.sessionCount")}</span>
+                  <span className="text-[var(--text)]">{agent.session.sessionCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t("agent.tokenUsage")}</span>
+                  <span className="text-[var(--text)]">{(agent.session.totalTokens / 1000).toFixed(1)}k</span>
+                </div>
+                {agent.session.lastActive && (
+                  <div className="flex justify-between">
+                    <span>{t("agent.lastActive")}</span>
+                    <span className="text-[var(--text)]">{formatTimeAgo(agent.session.lastActive)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+/* ── Session list (with ?agent= param) ── */
+function SessionList({ agentId }: { agentId: string }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [gateway, setGateway] = useState<GatewayInfo>({ port: 18789 });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [testResults, setTestResults] = useState<Record<string, { status: string; elapsed?: number; reply?: string; error?: string }>>({});
   const { t } = useI18n();
 
   function formatTimeAgo(ts: number): string {
@@ -65,7 +182,6 @@ export default function SessionsPage() {
   }
 
   useEffect(() => {
-    if (!agentId) return;
     Promise.all([
       fetch(`/api/sessions/${agentId}`).then((r) => r.json()),
       fetch("/api/config").then((r) => r.json()),
@@ -78,14 +194,6 @@ export default function SessionsPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [agentId]);
-
-  if (!agentId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-400">{t("sessions.missingAgent")}</p>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -105,6 +213,22 @@ export default function SessionsPage() {
 
   const totalTokens = sessions.reduce((sum, s) => sum + s.totalTokens, 0);
 
+  async function testSession(sessionKey: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setTestResults((prev) => ({ ...prev, [sessionKey]: { status: "testing" } }));
+    try {
+      const res = await fetch("/api/test-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionKey, agentId, port: gateway.port, token: gateway.token }),
+      });
+      const data = await res.json();
+      setTestResults((prev) => ({ ...prev, [sessionKey]: data }));
+    } catch (err: any) {
+      setTestResults((prev) => ({ ...prev, [sessionKey]: { status: "error", error: err.message } }));
+    }
+  }
+
   return (
     <main className="min-h-screen p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -116,10 +240,10 @@ export default function SessionsPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/"
+            href="/sessions"
             className="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm hover:border-[var(--accent)] transition"
           >
-            {t("common.backHome")}
+            {t("sessions.backToAgents")}
           </Link>
         </div>
       </div>
@@ -149,14 +273,65 @@ export default function SessionsPage() {
                     </code>
                   )}
                 </div>
-                <span className="text-xs text-[var(--text-muted)]">{formatTimeAgo(s.updatedAt)}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => testSession(s.key, e)}
+                    disabled={testResults[s.key]?.status === "testing"}
+                    className="px-3 py-1 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--bg)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition disabled:opacity-50"
+                  >
+                    {testResults[s.key]?.status === "testing" ? t("sessions.testing") : t("sessions.test")}
+                  </button>
+                  <span className="text-xs text-[var(--text-muted)]">{formatTimeAgo(s.updatedAt)}</span>
+                </div>
               </div>
+              {/* Test result */}
+              {testResults[s.key] && testResults[s.key].status !== "testing" && (
+                <div className={`mb-2 px-3 py-2 rounded-lg text-xs ${
+                  testResults[s.key].status === "ok"
+                    ? "bg-green-500/10 border border-green-500/30 text-green-300"
+                    : "bg-red-500/10 border border-red-500/30 text-red-300"
+                }`}>
+                  <span className="font-medium">
+                    {testResults[s.key].status === "ok" ? t("sessions.testOk") : t("sessions.testFail")}
+                  </span>
+                  {testResults[s.key].elapsed && (
+                    <span className="ml-2">{t("sessions.testTime")}: {(testResults[s.key].elapsed! / 1000).toFixed(1)}s</span>
+                  )}
+                  {testResults[s.key].reply && (
+                    <span className="ml-2 opacity-80">{t("sessions.testReply")}: {testResults[s.key].reply}</span>
+                  )}
+                  {testResults[s.key].error && (
+                    <span className="ml-2 opacity-80">{testResults[s.key].error}</span>
+                  )}
+                </div>
+              )}
+              {/* Context usage bar */}
+              {s.contextTokens > 0 && (
+                <div className="mb-2">
+                  <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
+                    <span>{t("sessions.context")}</span>
+                    <span>
+                      {(s.totalTokens / 1000).toFixed(1)}k / {(s.contextTokens / 1000).toFixed(0)}k
+                      {" "}({(s.totalTokens / s.contextTokens * 100).toFixed(1)}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-[var(--bg)] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        s.totalTokens / s.contextTokens > 0.9
+                          ? "bg-red-500"
+                          : s.totalTokens / s.contextTokens > 0.7
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
+                      }`}
+                      style={{ width: `${Math.min(100, s.totalTokens / s.contextTokens * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
                 <span className="font-mono text-[10px] opacity-60">{s.key}</span>
-                <div className="flex gap-4">
-                  <span>Token: {(s.totalTokens / 1000).toFixed(1)}k</span>
-                  <span>{formatTime(s.updatedAt)}</span>
-                </div>
+                <span>{formatTime(s.updatedAt)}</span>
               </div>
             </div>
           );
@@ -164,4 +339,13 @@ export default function SessionsPage() {
       </div>
     </main>
   );
+}
+
+/* ── Page entry ── */
+export default function SessionsPage() {
+  const searchParams = useSearchParams();
+  const agentId = searchParams.get("agent") || "";
+
+  if (!agentId) return <AgentPicker />;
+  return <SessionList agentId={agentId} />;
 }

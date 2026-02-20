@@ -196,6 +196,117 @@ function ResponseTimeChart({ data, height = 220, noDataText }: { data: DayStat[]
 export default function StatsPage() {
   const searchParams = useSearchParams();
   const agentId = searchParams.get("agent") || "";
+
+  if (!agentId) return <StatsAgentPicker />;
+  return <StatsDetail agentId={agentId} />;
+}
+
+/* ── Agent picker (no ?agent= param) ── */
+function StatsAgentPicker() {
+  const [agents, setAgents] = useState<{ id: string; name: string; emoji: string; session?: { lastActive: number | null; totalTokens: number; sessionCount: number } }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { t } = useI18n();
+
+  function formatTimeAgo(ts: number): string {
+    if (!ts) return "-";
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return t("common.justNow");
+    if (mins < 60) return `${mins} ${t("common.minutesAgo")}`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} ${t("common.hoursAgo")}`;
+    const days = Math.floor(hours / 24);
+    return `${days} ${t("common.daysAgo")}`;
+  }
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) setError(data.error);
+        else setAgents(data.agents || []);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-[var(--text-muted)]">{t("common.loading")}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-400">{t("common.loadError")}: {error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen p-8 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">📊 {t("stats.title")}</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
+            {t("stats.selectAgent")}
+          </p>
+        </div>
+        <Link
+          href="/"
+          className="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm hover:border-[var(--accent)] transition"
+        >
+          {t("common.backHome")}
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {agents.map((agent) => (
+          <Link
+            key={agent.id}
+            href={`/stats?agent=${agent.id}`}
+            className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--accent)] transition cursor-pointer block"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">{agent.emoji}</span>
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text)]">{agent.name}</h3>
+                {agent.name !== agent.id && (
+                  <span className="text-xs text-[var(--text-muted)]">{agent.id}</span>
+                )}
+              </div>
+            </div>
+            {agent.session && (
+              <div className="space-y-1 text-xs text-[var(--text-muted)]">
+                <div className="flex justify-between">
+                  <span>{t("agent.sessionCount")}</span>
+                  <span className="text-[var(--text)]">{agent.session.sessionCount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t("agent.tokenUsage")}</span>
+                  <span className="text-[var(--text)]">{formatTokens(agent.session.totalTokens)}</span>
+                </div>
+                {agent.session.lastActive && (
+                  <div className="flex justify-between">
+                    <span>{t("agent.lastActive")}</span>
+                    <span className="text-[var(--text)]">{formatTimeAgo(agent.session.lastActive)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+/* ── Stats detail (with ?agent= param) ── */
+function StatsDetail({ agentId }: { agentId: string }) {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -212,7 +323,6 @@ export default function StatsPage() {
   };
 
   useEffect(() => {
-    if (!agentId) return;
     fetch(`/api/stats/${agentId}`)
       .then((r) => r.json())
       .then((d) => {
@@ -222,14 +332,6 @@ export default function StatsPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [agentId]);
-
-  if (!agentId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-400">{t("stats.missingAgent")}</p>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -288,10 +390,10 @@ export default function StatsPage() {
             {t("stats.sessionList")}
           </Link>
           <Link
-            href="/"
+            href={`/stats`}
             className="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm hover:border-[var(--accent)] transition"
           >
-            {t("stats.home")}
+            {t("stats.backToAgents")}
           </Link>
         </div>
       </div>

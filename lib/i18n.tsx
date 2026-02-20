@@ -121,6 +121,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "stats.home": "← 首页",
     "stats.missingAgent": "缺少 agent 参数",
     "stats.noResponseData": "暂无响应时间数据",
+    "stats.selectAgent": "选择一个机器人查看其消息统计",
+    "stats.backToAgents": "← 返回机器人列表",
 
     // sessions page
     "sessions.title": "的会话列表",
@@ -134,6 +136,15 @@ const translations: Record<Locale, Record<string, string>> = {
     "sessions.type.discord-channel": "Discord 频道",
     "sessions.type.cron": "定时任务",
     "sessions.type.unknown": "未知",
+    "sessions.test": "测试",
+    "sessions.testing": "测试中...",
+    "sessions.testOk": "✅ 正常",
+    "sessions.testFail": "❌ 异常",
+    "sessions.testReply": "回复",
+    "sessions.testTime": "耗时",
+    "sessions.context": "上下文",
+    "sessions.selectAgent": "选择一个机器人查看其会话列表",
+    "sessions.backToAgents": "← 返回机器人列表",
 
     // skills page
     "skills.title": "🧩 技能管理",
@@ -265,6 +276,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "stats.home": "← Home",
     "stats.missingAgent": "Missing agent parameter",
     "stats.noResponseData": "No response time data",
+    "stats.selectAgent": "Select an agent to view message statistics",
+    "stats.backToAgents": "← Back to agents",
 
     // sessions page
     "sessions.title": "Sessions",
@@ -278,6 +291,15 @@ const translations: Record<Locale, Record<string, string>> = {
     "sessions.type.discord-channel": "Discord Channel",
     "sessions.type.cron": "Cron Job",
     "sessions.type.unknown": "Unknown",
+    "sessions.test": "Test",
+    "sessions.testing": "Testing...",
+    "sessions.testOk": "✅ OK",
+    "sessions.testFail": "❌ Failed",
+    "sessions.testReply": "Reply",
+    "sessions.testTime": "Time",
+    "sessions.context": "Context",
+    "sessions.selectAgent": "Select an agent to view its sessions",
+    "sessions.backToAgents": "← Back to agents",
 
     // skills page
     "skills.title": "🧩 Skill Management",
