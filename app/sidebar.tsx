@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+import { ThemeSwitcher } from "@/lib/theme";
 
 const NAV_ITEMS = [
   {
@@ -65,6 +66,7 @@ export function Sidebar() {
               </Link>
               <div className="flex items-center gap-2">
                 <LanguageSwitcher />
+                <ThemeSwitcher />
                 <button
                   onClick={() => setCollapsed(true)}
                   className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors text-lg"

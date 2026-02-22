@@ -12,6 +12,18 @@
   --orange: #fb923c;
 }
 
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --accent: #0284c7;
+  --accent2: #7c3aed;
+  --green: #16a34a;
+  --orange: #ea580c;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
