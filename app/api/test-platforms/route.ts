@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -13,6 +14,20 @@ interface PlatformTestResult {
   detail?: string;
   error?: string;
   elapsed: number;
+}
+
+interface AgentTestResult {
+  agentId: string;
+  ok: boolean;
+  reply?: string;
+  error?: string;
+  elapsed: number;
+}
+
+interface FullTestResult {
+  agentId: string;
+  platform: PlatformTestResult;
+  agent: AgentTestResult;
 }
 
 // Find the most recent feishu DM user open_id for a given agent
@@ -154,7 +169,6 @@ async function testDiscord(
   const startTime = Date.now();
 
   try {
-    // Step 1: verify bot identity
     const meResp = await fetch("https://discord.com/api/v10/users/@me", {
       method: "GET",
       headers: { Authorization: `Bot ${botToken}` },
@@ -172,7 +186,6 @@ async function testDiscord(
 
     const botName = `${meData.username}#${meData.discriminator || "0"}`;
 
-    // Step 2: send a real DM
     if (!testUserId) {
       return {
         agentId, platform: "discord", ok: true,
@@ -201,7 +214,6 @@ async function testDiscord(
       };
     }
 
-    // Send message
     const now = new Date().toLocaleTimeString("zh-CN", { timeZone: "Asia/Shanghai" });
     const msgResp = await fetch(
       `https://discord.com/api/v10/channels/${dmChan.id}/messages`,
@@ -243,6 +255,47 @@ async function testDiscord(
   }
 }
 
+// Agent session test: use openclaw CLI to send a health check and verify agent responds
+function testAgentSession(agentId: string): AgentTestResult {
+  const startTime = Date.now();
+  try {
+    const result = execSync(
+      `openclaw agent --agent ${agentId} --message "Health check: reply with OK" --json --timeout 30`,
+      { timeout: 40000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+    );
+
+    const elapsed = Date.now() - startTime;
+    const lines = result.split("\n");
+    const jsonStartIdx = lines.findIndex(l => l.trimStart().startsWith("{"));
+    if (jsonStartIdx === -1) {
+      return { agentId, ok: false, error: "No JSON in CLI output", elapsed };
+    }
+    const jsonStr = lines.slice(jsonStartIdx).join("\n");
+    const data = JSON.parse(jsonStr);
+    const payloads = data?.result?.payloads || [];
+    const reply = payloads[0]?.text || "";
+    const durationMs = data?.result?.meta?.durationMs || elapsed;
+    const ok = data.status === "ok";
+
+    return {
+      agentId, ok,
+      reply: reply ? reply.slice(0, 200) : (ok ? "(no reply text)" : ""),
+      error: ok ? undefined : "Agent returned error status",
+      elapsed: durationMs,
+    };
+  } catch (execErr: any) {
+    const elapsed = Date.now() - startTime;
+    const isTimeout = execErr.killed || execErr.signal === "SIGTERM";
+    return {
+      agentId, ok: false,
+      error: isTimeout
+        ? "Timeout: agent not responding (30s)"
+        : (execErr.stderr || execErr.message || "Unknown error").slice(0, 300),
+      elapsed,
+    };
+  }
+}
+
 export async function POST() {
   try {
     const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
@@ -271,13 +324,16 @@ export async function POST() {
       }
     }
 
-    const tests: Promise<PlatformTestResult>[] = [];
+    // Phase 1: Platform API tests (parallel)
+    const platformTests: Promise<PlatformTestResult>[] = [];
+    const agentIds: string[] = [];
     const testedFeishuAccounts = new Set<string>();
 
     for (const agent of agentList) {
       const id = agent.id;
+      agentIds.push(id);
 
-      // Feishu: check binding or direct account match
+      // Feishu
       const feishuBinding = bindings.find(
         (b: any) => b.agentId === id && b.match?.channel === "feishu"
       );
@@ -286,24 +342,41 @@ export async function POST() {
 
       if (account && account.appId && account.appSecret && !testedFeishuAccounts.has(accountId)) {
         testedFeishuAccounts.add(accountId);
-        // Use per-agent open_id (open_id is app-scoped, cannot cross apps)
         const testUserId = getFeishuDmUser(id);
-        tests.push(testFeishu(id, accountId, account.appId, account.appSecret, feishuDomain, testUserId));
+        platformTests.push(testFeishu(id, accountId, account.appId, account.appSecret, feishuDomain, testUserId));
       } else if (!feishuBinding && !account) {
         if (id === "main" && feishuConfig.enabled && feishuConfig.appId && feishuConfig.appSecret && !testedFeishuAccounts.has("main")) {
           testedFeishuAccounts.add("main");
           const testUserId = getFeishuDmUser("main");
-          tests.push(testFeishu(id, "main", feishuConfig.appId, feishuConfig.appSecret, feishuDomain, testUserId));
+          platformTests.push(testFeishu(id, "main", feishuConfig.appId, feishuConfig.appSecret, feishuDomain, testUserId));
         }
       }
 
-      // Discord: only test once (shared bot token)
+      // Discord: only test once
       if (id === "main" && discordConfig.enabled && discordConfig.token) {
-        tests.push(testDiscord(id, discordConfig.token, discordTestUser));
+        platformTests.push(testDiscord(id, discordConfig.token, discordTestUser));
       }
     }
 
-    const results = await Promise.all(tests);
+    const platformResults = await Promise.all(platformTests);
+
+    // Phase 2: Agent session tests (sequential to avoid overloading gateway)
+    const agentResults: AgentTestResult[] = [];
+    for (const id of agentIds) {
+      agentResults.push(testAgentSession(id));
+    }
+
+    // Combine results
+    const results: FullTestResult[] = agentIds.map(id => ({
+      agentId: id,
+      platform: platformResults.find(r => r.agentId === id) || {
+        agentId: id, platform: "unknown", ok: false, error: "No platform test", elapsed: 0,
+      },
+      agent: agentResults.find(r => r.agentId === id) || {
+        agentId: id, ok: false, error: "No agent test", elapsed: 0,
+      },
+    }));
+
     return NextResponse.json({ results });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
