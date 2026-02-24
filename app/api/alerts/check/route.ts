@@ -91,7 +91,7 @@ function getFeishuAccountForAgent(agentId: string, feishuConfig: any, bindings: 
 // 获取 agent 最近的发过消息的飞书用户
 function getFeishuDmUser(agentId: string): string | null {
   try {
-    const sessionsPath = path.join(OPENCLAW_HOME, `agents/${agentId}/sessions.json`);
+    const sessionsPath = path.join(OPENCLAW_HOME, `agents/${agentId}/sessions/sessions.json`);
     const raw = fs.readFileSync(sessionsPath, "utf-8");
     const sessions = JSON.parse(raw);
     let bestId: string | null = null;
