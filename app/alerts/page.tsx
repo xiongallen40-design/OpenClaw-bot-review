@@ -49,7 +49,14 @@ export default function AlertsPage() {
   const [checking, setChecking] = useState(false);
   const [checkResults, setCheckResults] = useState<string[]>([]);
   const [lastCheckTime, setLastCheckTime] = useState<string>("");
-  const [checkInterval, setCheckInterval] = useState(10); // 默认 10 分钟检查一次
+  const [checkInterval, setCheckInterval] = useState(10);
+
+  // 从配置加载 checkInterval
+  useEffect(() => {
+    if (config?.checkInterval) {
+      setCheckInterval(config.checkInterval);
+    }
+  }, [config?.checkInterval]);
 
   const ruleDescriptions = RULE_DESCRIPTIONS[locale as keyof typeof RULE_DESCRIPTIONS] || RULE_DESCRIPTIONS.zh;
 
@@ -138,6 +145,24 @@ export default function AlertsPage() {
       .finally(() => setSaving(false));
   };
 
+  const handleIntervalChange = (value: number) => {
+    if (!config) return;
+    setCheckInterval(value);
+    setSaving(true);
+    fetch("/api/alerts", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ checkInterval: value }),
+    })
+      .then((r) => r.json())
+      .then((newConfig) => {
+        setConfig(newConfig);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      })
+      .finally(() => setSaving(false));
+  };
+
   const handleRuleToggle = (ruleId: string) => {
     if (!config) return;
     const rules = config.rules.map((r) =>
@@ -212,13 +237,16 @@ export default function AlertsPage() {
               <span className="text-xs text-[var(--text-muted)]">{t("alerts.checkInterval") || "Check Interval"}:</span>
               <select
                 value={checkInterval}
-                onChange={(e) => setCheckInterval(Number(e.target.value))}
+                onChange={(e) => handleIntervalChange(Number(e.target.value))}
                 className="px-2 py-1 text-sm rounded border border-[var(--border)] bg-[var(--card)] text-[var(--text)]"
               >
                 <option value={1}>{locale === "zh" ? "1 分钟" : "1 minute"}</option>
                 <option value={5}>{locale === "zh" ? "5 分钟" : "5 minutes"}</option>
                 <option value={10}>{locale === "zh" ? "10 分钟" : "10 minutes"}</option>
                 <option value={30}>{locale === "zh" ? "30 分钟" : "30 minutes"}</option>
+                <option value={60}>{locale === "zh" ? "1 小时" : "1 hour"}</option>
+                <option value={120}>{locale === "zh" ? "2 小时" : "2 hours"}</option>
+                <option value={300}>{locale === "zh" ? "5 小时" : "5 hours"}</option>
               </select>
             </div>
           )}

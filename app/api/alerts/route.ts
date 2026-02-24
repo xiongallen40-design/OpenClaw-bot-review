@@ -16,6 +16,7 @@ interface AlertRule {
 interface AlertConfig {
   enabled: boolean;
   receiveAgent: string; // 接收告警的 agent ID
+  checkInterval: number; // 检查间隔（分钟）
   rules: AlertRule[];
   lastAlerts?: Record<string, number>; // 上次告警时间戳
 }
@@ -37,6 +38,7 @@ function getAlertConfig(): AlertConfig {
   return {
     enabled: false,
     receiveAgent: "main",
+    checkInterval: 10,
     rules: DEFAULT_RULES,
     lastAlerts: {},
   };
@@ -76,6 +78,7 @@ export async function PUT(request: Request) {
     
     if (body.enabled !== undefined) config.enabled = body.enabled;
     if (body.receiveAgent) config.receiveAgent = body.receiveAgent;
+    if (body.checkInterval !== undefined) config.checkInterval = body.checkInterval;
     if (body.rules) {
       // 合并规则配置
       for (const newRule of body.rules) {
