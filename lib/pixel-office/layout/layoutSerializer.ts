@@ -295,6 +295,7 @@ export function createDefaultLayout(): OfficeLayout {
     { uid: 'pc-l1', type: FurnitureType.PC, col: 3.5, row: 2.75, rotation: 180 },
     { uid: 'pc-l2', type: FurnitureType.PC, col: 6.5, row: 2.75, rotation: 180 },
     { uid: 'pc-l3', type: FurnitureType.PC, col: 3.5, row: 5.5 },
+    { uid: 'coffee-l', type: FurnitureType.COFFEE, col: 4.17, row: 5.75 },
     { uid: 'pc-l4', type: FurnitureType.PC, col: 6.5, row: 5.5 },
     { uid: 'phone-l', type: FurnitureType.PHONE, col: 7.17, row: 5.75 },
 
@@ -304,12 +305,12 @@ export function createDefaultLayout(): OfficeLayout {
     { uid: 'chair-r1-bottom', type: FurnitureType.CHAIR, col: 14, row: 5 },
     { uid: 'chair-r1-left', type: FurnitureType.CHAIR, col: 12, row: 4 },
     { uid: 'chair-r1-right', type: FurnitureType.CHAIR, col: 15, row: 3 },
-    { uid: 'pc-r', type: FurnitureType.PC, col: 14, row: 2.5, rotation: 90 },
+    { uid: 'pc-r', type: FurnitureType.PC, col: 14, row: 2.75, rotation: 270 },
     { uid: 'camera-r', type: FurnitureType.CAMERA, col: 13.5, row: 3.5 },
-    { uid: 'plant-r1', type: FurnitureType.PLANT, col: 19, row: 1 },
+    { uid: 'plant-r1', type: FurnitureType.PLANT, col: 19, row: 3 },
     { uid: 'whiteboard-r', type: FurnitureType.WHITEBOARD, col: 15, row: 0 },
-    { uid: 'library-r', type: FurnitureType.LIBRARY_GRAY_FULL, col: 18, row: 3 },
-    { uid: 'clock-r', type: FurnitureType.CLOCK, col: 11, row: 1 },
+    { uid: 'library-r', type: FurnitureType.LIBRARY_GRAY_FULL, col: 17.5, row: -0.5 },
+    { uid: 'clock-r', type: FurnitureType.CLOCK, col: 11, row: 0 },
     { uid: 'lamp-r', type: FurnitureType.LAMP, col: 19, row: 7 },
 
     // ── Right room meeting corner ──
@@ -322,13 +323,13 @@ export function createDefaultLayout(): OfficeLayout {
     { uid: 'deco-b', type: FurnitureType.DECO_3, col: 9, row: 9.5 },
     { uid: 'plant-b1', type: FurnitureType.PLANT, col: 1, row: 15 },
     { uid: 'plant-b2', type: FurnitureType.PLANT_SMALL, col: 19, row: 15 },
-    { uid: 'plant-b3', type: FurnitureType.PLANT_SMALL, col: 19, row: 11 },
+    { uid: 'plant-b3', type: FurnitureType.PLANT_SMALL, col: 19, row: 10.5 },
     { uid: 'painting-l2', type: FurnitureType.PAINTING_LARGE_2, col: 11, row: 10 },
     { uid: 'bookshelf-b', type: FurnitureType.BOOKSHELF, col: 18, row: 9.5 },
     { uid: 'sofa-b', type: FurnitureType.SOFA, col: 10, row: 14, rotation: 180 },
     { uid: 'bench-b1', type: FurnitureType.BENCH, col: 8, row: 15 },
     { uid: 'bench-b2', type: FurnitureType.BENCH, col: 12, row: 15 },
-    { uid: 'lamp-b', type: FurnitureType.LAMP, col: 7, row: 13 },
+    { uid: 'lamp-b', type: FurnitureType.LAMP, col: 7, row: 14 },
   ]
 
   return { version: 1, cols, rows, tiles, tileColors, furniture }

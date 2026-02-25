@@ -118,6 +118,7 @@ export const FurnitureType = {
   PAINTING_SMALL_3: 'ts_painting_small_3',
   PHONE: 'phone',
   SOFA: 'sofa',
+  COFFEE: 'coffee',
 } as const
 export type FurnitureType = (typeof FurnitureType)[keyof typeof FurnitureType]
 
