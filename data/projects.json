@@ -4,36 +4,43 @@
       "id": "kaer-morhen-labs",
       "name": "Kaer Morhen Labs Dashboard",
       "emoji": "🏰",
-      "owner": "Shani",
       "status": "in-progress",
-      "tasks": [
+      "members": [
         {
-          "text": "Fork + 跑通开源项目",
-          "done": true
+          "name": "Shani",
+          "emoji": "🔧",
+          "tasks": [
+            { "text": "Fork + 跑通开源项目", "done": true },
+            { "text": "Gateway API Client + SQLite WAL", "done": true },
+            { "text": "SSE 实时推送替代轮询", "done": true },
+            { "text": "团队看板页面", "done": true },
+            { "text": "技能扫描修复", "done": true },
+            { "text": "项目任务板（按成员分组）", "done": false },
+            { "text": "像素办公室状态同步", "done": false }
+          ]
         },
         {
-          "text": "Gateway API Client + SQLite WAL",
-          "done": true
+          "name": "Ciri",
+          "emoji": "🦁",
+          "tasks": [
+            { "text": "协调团队任务分配", "done": true },
+            { "text": "审查 Dashboard 改造计划", "done": true }
+          ]
         },
         {
-          "text": "SSE 实时推送替代轮询",
-          "done": true
+          "name": "Triss",
+          "emoji": "🌸",
+          "tasks": []
         },
         {
-          "text": "团队看板页面",
-          "done": true
+          "name": "Yennefer",
+          "emoji": "💜",
+          "tasks": []
         },
         {
-          "text": "技能扫描修复（158 skills）",
-          "done": true
-        },
-        {
-          "text": "项目任务板",
-          "done": true
-        },
-        {
-          "text": "像素办公室状态同步",
-          "done": false
+          "name": "Vesemir",
+          "emoji": "🛡️",
+          "tasks": []
         }
       ]
     }
