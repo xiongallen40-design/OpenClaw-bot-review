@@ -10,21 +10,48 @@
           "name": "Shani",
           "emoji": "🔧",
           "tasks": [
-            { "text": "Fork + 跑通开源项目", "done": true },
-            { "text": "Gateway API Client + SQLite WAL", "done": true },
-            { "text": "SSE 实时推送替代轮询", "done": true },
-            { "text": "团队看板页面", "done": true },
-            { "text": "技能扫描修复", "done": true },
-            { "text": "项目任务板（按成员分组）", "done": false },
-            { "text": "像素办公室状态同步", "done": false }
+            {
+              "text": "Fork + 跑通开源项目",
+              "done": true
+            },
+            {
+              "text": "Gateway API Client + SQLite WAL",
+              "done": true
+            },
+            {
+              "text": "SSE 实时推送替代轮询",
+              "done": true
+            },
+            {
+              "text": "团队看板页面",
+              "done": true
+            },
+            {
+              "text": "技能扫描修复",
+              "done": true
+            },
+            {
+              "text": "项目任务板（按成员分组）",
+              "done": false
+            },
+            {
+              "text": "像素办公室状态同步",
+              "done": true
+            }
           ]
         },
         {
           "name": "Ciri",
           "emoji": "🦁",
           "tasks": [
-            { "text": "协调团队任务分配", "done": true },
-            { "text": "审查 Dashboard 改造计划", "done": true }
+            {
+              "text": "协调团队任务分配",
+              "done": true
+            },
+            {
+              "text": "审查 Dashboard 改造计划",
+              "done": true
+            }
           ]
         },
         {

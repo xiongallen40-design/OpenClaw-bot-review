@@ -30,6 +30,8 @@ export default function ProjectsPage() {
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProject, setNewProject] = useState({ name: "", emoji: "📋" });
   const [showAddMember, setShowAddMember] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
   const [newMember, setNewMember] = useState({ name: "", emoji: "🤖" });
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -57,6 +59,29 @@ export default function ProjectsPage() {
     });
     const data = await res.json();
     if (data.projects) setProjects(data.projects);
+  };
+
+  const syncTasks = async (projectId: string) => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/auto-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, days: 1 }),
+      });
+      const data = await res.json();
+      if (data.projects) setProjects(data.projects);
+      setSyncResult(
+        data.added > 0
+          ? t("projects.syncFound").replace("{n}", String(data.added))
+          : t("projects.syncNone")
+      );
+    } catch {
+      setSyncResult("Sync failed");
+    }
+    setSyncing(false);
+    setTimeout(() => setSyncResult(null), 3000);
   };
 
   if (loading) {
@@ -153,6 +178,14 @@ export default function ProjectsPage() {
                     />
                   </div>
                   <span className="text-xs font-mono text-[var(--text-muted)]">{progress}%</span>
+                  <button
+                    onClick={() => syncTasks(project.id)}
+                    disabled={syncing}
+                    className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors disabled:opacity-50"
+                    title="自动检测任务"
+                  >
+                    {syncing ? "⏳" : "🔄"}
+                  </button>
                   <button
                     onClick={() => setShowAddMember(showAddMember === project.id ? null : project.id)}
                     className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
