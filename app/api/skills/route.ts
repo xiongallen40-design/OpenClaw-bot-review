@@ -8,6 +8,7 @@ const OPENCLAW_HOME = process.env.OPENCLAW_HOME || path.join(process.env.HOME ||
 function findOpenClawPkg(): string {
   // Check common locations
   const candidates = [
+    "/opt/homebrew/lib/node_modules/openclaw",
     path.join(process.env.HOME || "", ".nvm/versions/node", process.version, "lib/node_modules/openclaw"),
     "/usr/local/lib/node_modules/openclaw",
     "/usr/lib/node_modules/openclaw",
@@ -135,7 +136,36 @@ export async function GET() {
     const customDir = path.join(OPENCLAW_HOME, "skills");
     const customSkills = scanSkillsDir(customDir, "custom");
 
-    const allSkills = [...builtinSkills, ...extSkills, ...customSkills];
+    // 4. Scan per-agent workspace skills
+    const agentWorkspaceSkills: SkillInfo[] = [];
+    const agentsDir = path.join(OPENCLAW_HOME, "agents");
+    if (fs.existsSync(agentsDir)) {
+      for (const agentId of fs.readdirSync(agentsDir)) {
+        // Check workspace-{agentId}/skills/
+        const wsSkillsDir = path.join(OPENCLAW_HOME, `workspace-${agentId}`, "skills");
+        if (fs.existsSync(wsSkillsDir)) {
+          const skills = scanSkillsDir(wsSkillsDir, `agent:${agentId}`);
+          // Avoid duplicates
+          for (const s of skills) {
+            if (!agentWorkspaceSkills.some(e => e.id === s.id) && !customSkills.some(e => e.id === s.id)) {
+              agentWorkspaceSkills.push(s);
+            }
+          }
+        }
+        // Also check agent dir skills
+        const agentSkillsDir = path.join(agentsDir, agentId, "agent", "skills");
+        if (fs.existsSync(agentSkillsDir)) {
+          const skills = scanSkillsDir(agentSkillsDir, `agent:${agentId}`);
+          for (const s of skills) {
+            if (!agentWorkspaceSkills.some(e => e.id === s.id) && !customSkills.some(e => e.id === s.id)) {
+              agentWorkspaceSkills.push(s);
+            }
+          }
+        }
+      }
+    }
+
+    const allSkills = [...builtinSkills, ...extSkills, ...customSkills, ...agentWorkspaceSkills];
 
     // 4. Map agent usage from session data
     const agentSkills = getAgentSkillsFromSessions();
