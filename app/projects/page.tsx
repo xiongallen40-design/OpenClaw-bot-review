@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 
 interface Task {
   text: string;
   done: boolean;
+  completedAt?: number;
 }
 
 interface Project {
@@ -24,6 +25,7 @@ export default function ProjectsPage() {
   const [newTaskText, setNewTaskText] = useState<Record<string, string>>({});
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProject, setNewProject] = useState({ name: "", emoji: "📋", owner: "" });
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchData = useCallback(() => {
     fetch("/api/projects")
@@ -35,7 +37,12 @@ export default function ProjectsPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+    // Poll every 5s for real-time sync across devices
+    pollRef.current = setInterval(fetchData, 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [fetchData]);
 
   const doAction = async (body: any) => {
     const res = await fetch("/api/projects", {
@@ -136,7 +143,13 @@ export default function ProjectsPage() {
       ) : (
         <div className="space-y-4">
           {projects.map((project) => {
-            const doneCount = project.tasks.filter((t) => t.done).length;
+            const pendingTasks = project.tasks
+              .map((t, i) => ({ ...t, originalIndex: i }))
+              .filter((t) => !t.done);
+            const doneTasks = project.tasks
+              .map((t, i) => ({ ...t, originalIndex: i }))
+              .filter((t) => t.done);
+            const doneCount = doneTasks.length;
             const totalCount = project.tasks.length;
             const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
@@ -158,10 +171,9 @@ export default function ProjectsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    {/* Progress bar */}
                     <div className="w-32 h-2 rounded-full bg-[var(--border)] overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-300"
+                        className="h-full rounded-full transition-all duration-500"
                         style={{
                           width: `${progress}%`,
                           backgroundColor: progress === 100 ? "#22c55e" : "var(--accent)",
@@ -179,56 +191,86 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                {/* Tasks */}
-                <div className="px-5 py-3 space-y-1">
-                  {project.tasks.map((task, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-3 py-1.5 group"
-                    >
-                      <button
-                        onClick={() => toggleTask(project.id, i)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                          task.done
-                            ? "bg-green-500 border-green-500 text-white"
-                            : "border-[var(--border)] hover:border-[var(--accent)]"
-                        }`}
-                      >
-                        {task.done && "✓"}
-                      </button>
-                      <span
-                        className={`flex-1 text-sm ${
-                          task.done
-                            ? "line-through text-[var(--text-muted)]"
-                            : "text-[var(--text)]"
-                        }`}
-                      >
-                        {task.text}
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[var(--border)]">
+                  {/* In Progress column */}
+                  <div className="px-5 py-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                        {t("projects.inProgress")} ({pendingTasks.length})
                       </span>
-                      <button
-                        onClick={() => deleteTask(project.id, i)}
-                        className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-500 transition-all text-xs"
-                      >
-                        ✕
-                      </button>
                     </div>
-                  ))}
+                    <div className="space-y-1 min-h-[40px]">
+                      {pendingTasks.map((task) => (
+                        <div
+                          key={task.originalIndex}
+                          className="flex items-center gap-3 py-1.5 group animate-fadeIn"
+                        >
+                          <button
+                            onClick={() => toggleTask(project.id, task.originalIndex)}
+                            className="w-5 h-5 rounded border-2 border-[var(--border)] hover:border-[var(--accent)] flex items-center justify-center transition-colors flex-shrink-0"
+                          />
+                          <span className="flex-1 text-sm text-[var(--text)]">{task.text}</span>
+                          <button
+                            onClick={() => deleteTask(project.id, task.originalIndex)}
+                            className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-500 transition-all text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Add task */}
+                    <div className="flex items-center gap-2 pt-2 mt-2 border-t border-[var(--border)]/50">
+                      <input
+                        type="text"
+                        placeholder={`+ ${t("projects.addTask")}`}
+                        value={newTaskText[project.id] || ""}
+                        onChange={(e) =>
+                          setNewTaskText((prev) => ({ ...prev, [project.id]: e.target.value }))
+                        }
+                        onKeyDown={(e) => e.key === "Enter" && addTask(project.id)}
+                        className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm placeholder:text-[var(--text-muted)]/50"
+                      />
+                    </div>
+                  </div>
 
-                  {/* Add task input */}
-                  <div className="flex items-center gap-2 pt-2">
-                    <input
-                      type="text"
-                      placeholder={`+ ${t("projects.addTask")}`}
-                      value={newTaskText[project.id] || ""}
-                      onChange={(e) =>
-                        setNewTaskText((prev) => ({
-                          ...prev,
-                          [project.id]: e.target.value,
-                        }))
-                      }
-                      onKeyDown={(e) => e.key === "Enter" && addTask(project.id)}
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm placeholder:text-[var(--text-muted)]/50"
-                    />
+                  {/* Finished column */}
+                  <div className="px-5 py-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                        {t("projects.finished")} ({doneTasks.length})
+                      </span>
+                    </div>
+                    <div className="space-y-1 min-h-[40px]">
+                      {doneTasks.length === 0 ? (
+                        <div className="text-xs text-[var(--text-muted)]/50 py-2">{t("projects.noFinished")}</div>
+                      ) : (
+                        doneTasks.map((task) => (
+                          <div
+                            key={task.originalIndex}
+                            className="flex items-center gap-3 py-1.5 group animate-fadeIn"
+                          >
+                            <button
+                              onClick={() => toggleTask(project.id, task.originalIndex)}
+                              className="w-5 h-5 rounded border-2 bg-green-500 border-green-500 text-white flex items-center justify-center transition-colors flex-shrink-0 text-xs"
+                            >
+                              ✓
+                            </button>
+                            <span className="flex-1 text-sm line-through text-[var(--text-muted)]">
+                              {task.text}
+                            </span>
+                            <button
+                              onClick={() => deleteTask(project.id, task.originalIndex)}
+                              className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-500 transition-all text-xs"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -236,6 +278,16 @@ export default function ProjectsPage() {
           })}
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
