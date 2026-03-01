@@ -1,0 +1,20 @@
+{
+  "projects": [
+    {
+      "id": "kaer-morhen-labs",
+      "name": "Kaer Morhen Labs Dashboard",
+      "emoji": "🏰",
+      "owner": "Shani",
+      "status": "in-progress",
+      "tasks": [
+        { "text": "Fork + 跑通开源项目", "done": true },
+        { "text": "Gateway API Client + SQLite WAL", "done": true },
+        { "text": "SSE 实时推送替代轮询", "done": true },
+        { "text": "团队看板页面", "done": true },
+        { "text": "技能扫描修复（158 skills）", "done": true },
+        { "text": "项目任务板", "done": false },
+        { "text": "像素办公室状态同步", "done": false }
+      ]
+    }
+  ]
+}
