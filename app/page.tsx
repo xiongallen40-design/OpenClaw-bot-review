@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 import { buildGatewayUrl } from "@/lib/gateway-url";
 import { GatewayStatus } from "./gateway-status";
+import { useSSE } from "@/lib/use-sse";
 
 interface Platform {
   name: string;
@@ -718,24 +719,34 @@ export default function Home() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [refreshInterval, fetchData]);
 
-  // Agent 状态轮询 (30秒)
+  // Agent 状态 via SSE (替代 30s 轮询)
+  useSSE("/api/events", (event) => {
+    if (event.type === "agent:status") {
+      const { agentId, status } = event.data;
+      setAgentStates((prev) => {
+        const next = { ...prev, [agentId]: status };
+        cachedHomeAgentStates = next;
+        return next;
+      });
+    }
+    if (event.type === "gateway:health") {
+      // Could trigger a data refresh on health change
+    }
+  });
+
+  // Initial agent status fetch (SSE takes over after)
   useEffect(() => {
-    const fetchStatus = () => {
-      fetch("/api/agent-status")
-        .then(r => r.json())
-        .then(d => {
-          if (d.statuses) {
-            const map: Record<string, string> = {};
-            for (const s of d.statuses) map[s.agentId] = s.state;
-            setAgentStates(map);
-            cachedHomeAgentStates = map;
-          }
-        })
-        .catch(() => {});
-    };
-    fetchStatus();
-    const timer = setInterval(fetchStatus, 30000);
-    return () => clearInterval(timer);
+    fetch("/api/agent-status")
+      .then(r => r.json())
+      .then(d => {
+        if (d.statuses) {
+          const map: Record<string, string> = {};
+          for (const s of d.statuses) map[s.agentId] = s.state;
+          setAgentStates(map);
+          cachedHomeAgentStates = map;
+        }
+      })
+      .catch(() => {});
   }, []);
 
   if (error && !data) {
