@@ -68,7 +68,7 @@ export default function ProjectsPage() {
       const res = await fetch("/api/auto-tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, days: 1 }),
+        body: JSON.stringify({ projectId, days: 7 }),
       });
       const data = await res.json();
       if (data.projects) setProjects(data.projects);
@@ -181,10 +181,10 @@ export default function ProjectsPage() {
                   <button
                     onClick={() => syncTasks(project.id)}
                     disabled={syncing}
-                    className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors disabled:opacity-50"
+                    className="px-2 py-1 rounded-lg text-xs font-medium border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors disabled:opacity-50"
                     title="自动检测任务"
                   >
-                    {syncing ? "⏳" : "🔄"}
+                    {syncing ? "⏳ 检测中..." : "🔄 自动检测"}
                   </button>
                   <button
                     onClick={() => setShowAddMember(showAddMember === project.id ? null : project.id)}
