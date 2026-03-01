@@ -23,6 +23,7 @@ const NAV_ITEMS = [
     items: [
       { href: "/sessions", icon: "💬", labelKey: "nav.sessions" },
       { href: "/stats", icon: "📊", labelKey: "nav.stats" },
+      { href: "/team", icon: "👥", labelKey: "nav.team" },
       { href: "/alerts", icon: "🔔", labelKey: "nav.alerts" },
       { href: "/pixel-office", icon: "🎮", labelKey: "nav.pixelOffice" },
     ],
