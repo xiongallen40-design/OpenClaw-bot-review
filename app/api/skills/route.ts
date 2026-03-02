@@ -113,6 +113,57 @@ function getAgentSkillsFromSessions(): Record<string, Set<string>> {
   return result;
 }
 
+function getAgentWorkspaceSkillIds(): Record<string, string[]> {
+  const result: Record<string, string[]> = {};
+  const configPath = path.join(OPENCLAW_HOME, "openclaw.json");
+  let agentList: any[] = [];
+  try {
+    const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    agentList = config.agents?.list || [];
+  } catch { return result; }
+
+  for (const agent of agentList) {
+    const agentId = agent.id;
+    const ws = agent.workspace || path.join(OPENCLAW_HOME, agentId === "main" ? "workspace" : `workspace-${agentId}`);
+    const skillsDir = path.join(ws, "skills");
+    const skillIds: string[] = [];
+
+    if (fs.existsSync(skillsDir)) {
+      for (const name of fs.readdirSync(skillsDir).sort()) {
+        const skillMd = path.join(skillsDir, name, "SKILL.md");
+        if (fs.existsSync(skillMd)) {
+          skillIds.push(name);
+        }
+      }
+    }
+
+    // Also add builtin skills (all agents get them)
+    const builtinDir = path.join(OPENCLAW_PKG, "skills");
+    if (fs.existsSync(builtinDir)) {
+      for (const name of fs.readdirSync(builtinDir).sort()) {
+        const skillMd = path.join(builtinDir, name, "SKILL.md");
+        if (fs.existsSync(skillMd) && !skillIds.includes(name)) {
+          skillIds.push(name);
+        }
+      }
+    }
+
+    // Also custom skills (~/.openclaw/skills)
+    const customDir = path.join(OPENCLAW_HOME, "skills");
+    if (fs.existsSync(customDir)) {
+      for (const name of fs.readdirSync(customDir).sort()) {
+        const skillMd = path.join(customDir, name, "SKILL.md");
+        if (fs.existsSync(skillMd) && !skillIds.includes(name)) {
+          skillIds.push(name);
+        }
+      }
+    }
+
+    result[agentId] = skillIds;
+  }
+  return result;
+}
+
 export async function GET() {
   try {
     // 1. Scan builtin skills
@@ -188,9 +239,22 @@ export async function GET() {
       agentMap[a.id] = { name, emoji };
     }
 
+    // 6. Build per-agent skill mapping from workspace dirs
+    const agentSkillMap = getAgentWorkspaceSkillIds();
+
+    // Update usedBy based on workspace mapping
+    for (const skill of allSkills) {
+      for (const [agentId, skillIds] of Object.entries(agentSkillMap)) {
+        if (skillIds.includes(skill.id) && !skill.usedBy.includes(agentId)) {
+          skill.usedBy.push(agentId);
+        }
+      }
+    }
+
     return NextResponse.json({
       skills: allSkills,
       agents: agentMap,
+      agentSkillMap,
       total: allSkills.length,
     });
   } catch (err: any) {

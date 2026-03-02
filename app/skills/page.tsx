@@ -22,8 +22,10 @@ export default function SkillsPage() {
   const { t } = useI18n();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [agents, setAgents] = useState<Record<string, AgentInfo>>({});
+  const [agentSkillMap, setAgentSkillMap] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "builtin" | "extension" | "custom">("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "builtin" | "extension" | "custom">("all");
+  const [agentFilter, setAgentFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -34,35 +36,42 @@ export default function SkillsPage() {
         else {
           setSkills(data.skills);
           setAgents(data.agents);
+          setAgentSkillMap(data.agentSkillMap || {});
         }
       })
       .catch((e) => setError(e.message));
   }, []);
 
   const filtered = skills.filter((s) => {
-    if (filter === "builtin" && s.source !== "builtin") return false;
-    if (filter === "extension" && !s.source.startsWith("extension:")) return false;
-    if (filter === "custom" && s.source !== "custom") return false;
+    if (sourceFilter === "builtin" && s.source !== "builtin") return false;
+    if (sourceFilter === "extension" && !s.source.startsWith("extension:")) return false;
+    if (sourceFilter === "custom" && s.source !== "custom" && !s.source.startsWith("agent:")) return false;
+    if (agentFilter !== "all") {
+      const agentSkills = agentSkillMap[agentFilter] || [];
+      if (!agentSkills.includes(s.id)) return false;
+    }
     if (search) {
       const q = search.toLowerCase();
-      return (
-        s.name.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.id.toLowerCase().includes(q)
-      );
+      return s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     }
     return true;
   });
 
   const sourceLabel = (s: string) => {
     if (s === "builtin") return t("skills.source.builtin");
-    if (s.startsWith("extension:")) return s.replace("extension:", `${t("skills.extension")}:`);
+    if (s.startsWith("extension:")) return s.replace("extension:", t("skills.extension") + ":");
+    if (s.startsWith("agent:")) {
+      const agentId = s.replace("agent:", "");
+      const agent = agents[agentId];
+      return agent ? agent.emoji + " " + agent.name : agentId;
+    }
     return t("skills.source.custom");
   };
 
   const sourceBadgeClass = (s: string) => {
     if (s === "builtin") return "bg-blue-500/20 text-blue-400";
     if (s.startsWith("extension:")) return "bg-purple-500/20 text-purple-400";
+    if (s.startsWith("agent:")) return "bg-orange-500/20 text-orange-400";
     return "bg-green-500/20 text-green-400";
   };
 
@@ -76,7 +85,8 @@ export default function SkillsPage() {
 
   const builtinCount = skills.filter((s) => s.source === "builtin").length;
   const extCount = skills.filter((s) => s.source.startsWith("extension:")).length;
-  const customCount = skills.filter((s) => s.source === "custom").length;
+  const customCount = skills.filter((s) => s.source === "custom" || s.source.startsWith("agent:")).length;
+  const sortedAgents = Object.entries(agentSkillMap).sort((a, b) => b[1].length - a[1].length);
 
   return (
     <main className="min-h-screen p-8 max-w-6xl mx-auto">
@@ -87,28 +97,47 @@ export default function SkillsPage() {
             共 {skills.length} {t("skills.count")}（{t("skills.builtin")} {builtinCount} / {t("skills.extension")} {extCount} / {t("skills.custom")} {customCount}）
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm font-medium hover:border-[var(--accent)] transition"
+        <Link href="/" className="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm font-medium hover:border-[var(--accent)] transition">
+          {t("common.backOverview")}
+        </Link>
+      </div>
+
+      {/* Agent filter */}
+      <div className="mb-4">
+        <div className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+          按 Agent 筛选
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setAgentFilter("all")}
+            className={"px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer border " + (agentFilter === "all" ? "bg-[var(--accent)] text-white border-[var(--accent)]" : "bg-[var(--card)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)]")}
           >
-            {t("common.backOverview")}
-          </Link>
+            全部 ({skills.length})
+          </button>
+          {sortedAgents.map(([agentId, skillIds]) => {
+            const agent = agents[agentId];
+            if (!agent) return null;
+            return (
+              <button
+                key={agentId}
+                onClick={() => setAgentFilter(agentFilter === agentId ? "all" : agentId)}
+                className={"px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer border " + (agentFilter === agentId ? "bg-[var(--accent)] text-white border-[var(--accent)]" : "bg-[var(--card)] text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent)]")}
+              >
+                {agent.emoji || "🤖"} {agent.name} ({skillIds.length})
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Source filter + search */}
       <div className="flex items-center gap-3 mb-6">
         <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
           {(["all", "builtin", "extension", "custom"] as const).map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
-                filter === f
-                  ? "bg-[var(--accent)] text-[var(--bg)]"
-                  : "bg-[var(--card)] text-[var(--text-muted)] hover:text-[var(--text)]"
-              }`}
+              onClick={() => setSourceFilter(f)}
+              className={"px-3 py-1.5 text-xs font-medium transition cursor-pointer " + (sourceFilter === f ? "bg-[var(--accent)] text-[var(--bg)]" : "bg-[var(--card)] text-[var(--text-muted)] hover:text-[var(--text)]")}
             >
               {f === "all" ? t("skills.all") : f === "builtin" ? t("skills.builtin") : f === "extension" ? t("skills.extension") : t("skills.custom")}
             </button>
@@ -129,16 +158,13 @@ export default function SkillsPage() {
       {/* Skills Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((skill) => (
-          <div
-            key={`${skill.source}-${skill.id}`}
-            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 hover:border-[var(--accent)]/50 transition"
-          >
+          <div key={skill.source + "-" + skill.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 hover:border-[var(--accent)]/50 transition">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xl">{skill.emoji}</span>
                 <span className="font-semibold text-sm">{skill.name}</span>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${sourceBadgeClass(skill.source)}`}>
+              <span className={"px-2 py-0.5 rounded-full text-[10px] font-medium " + sourceBadgeClass(skill.source)}>
                 {sourceLabel(skill.source)}
               </span>
             </div>
@@ -152,7 +178,8 @@ export default function SkillsPage() {
                   return (
                     <span
                       key={agentId}
-                      className="px-1.5 py-0.5 rounded bg-[var(--bg)] text-[10px] font-medium"
+                      className={"px-1.5 py-0.5 rounded text-[10px] font-medium cursor-pointer transition " + (agentFilter === agentId ? "bg-[var(--accent)]/20 text-[var(--accent)]" : "bg-[var(--bg)] text-[var(--text-muted)] hover:text-[var(--text)]")}
+                      onClick={() => setAgentFilter(agentFilter === agentId ? "all" : agentId)}
                     >
                       {agent?.emoji || "🤖"} {agent?.name || agentId}
                     </span>
