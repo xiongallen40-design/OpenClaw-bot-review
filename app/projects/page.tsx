@@ -101,21 +101,61 @@ export default function ProjectsPage() {
     return data;
   };
 
+  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
+  const [showPending, setShowPending] = useState(false);
+
   const syncTasks = async (projectId: string) => {
     setSyncing(true);
     setSyncResult(null);
     try {
-      const res = await fetch("/api/auto-tasks", {
+      const res = await fetch("/api/pending-tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, days: 7 }),
+        body: JSON.stringify({ action: "scan", days: 3 }),
       });
       const data = await res.json();
-      if (data.projects) setProjects(data.projects);
-      setSyncResult(data.added > 0 ? t("projects.syncFound").replace("{n}", String(data.added)) : t("projects.syncNone"));
+      if (data.tasks && data.tasks.length > 0) {
+        setPendingTasks(data.tasks);
+        setShowPending(true);
+        setSyncResult(data.message);
+      } else {
+        setSyncResult(data.message || t("projects.syncNone"));
+      }
     } catch { setSyncResult("Sync failed"); }
     setSyncing(false);
-    setTimeout(() => setSyncResult(null), 3000);
+    setTimeout(() => setSyncResult(null), 5000);
+  };
+
+  const approvePendingTask = async (taskId: string, projectId: string) => {
+    const res = await fetch("/api/pending-tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "approve", taskId, projectId }),
+    });
+    const data = await res.json();
+    if (data.projects) setProjects(data.projects);
+    setPendingTasks(prev => prev.filter(t => t.id !== taskId));
+  };
+
+  const rejectPendingTask = async (taskId: string) => {
+    await fetch("/api/pending-tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reject", taskId }),
+    });
+    setPendingTasks(prev => prev.filter(t => t.id !== taskId));
+  };
+
+  const approveAllPending = async (projectId: string) => {
+    const res = await fetch("/api/pending-tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "approve-all", projectId }),
+    });
+    const data = await res.json();
+    if (data.projects) setProjects(data.projects);
+    setPendingTasks([]);
+    setShowPending(false);
   };
 
   const transitionTask = (projectId: string, memberName: string, taskIndex: number, newState: string) => {
@@ -393,6 +433,69 @@ export default function ProjectsPage() {
             </div>
           );
         })
+      )}
+
+      {/* Pending Tasks Panel */}
+      {showPending && pendingTasks.length > 0 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowPending(false)}>
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 w-[600px] max-w-[90vw] max-h-[80vh] overflow-auto space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-semibold text-[var(--text)] text-lg">🧠 AI 归纳的任务</div>
+                <div className="text-xs text-[var(--text-muted)]">MiniMax M2.5 从对话中提取并归纳，请确认</div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => approveAllPending(projects[0]?.id)}
+                  className="px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-medium hover:bg-green-600">
+                  ✅ 全部通过
+                </button>
+                <button onClick={() => setShowPending(false)}
+                  className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] text-xs">
+                  关闭
+                </button>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {pendingTasks.map((task: any) => (
+                <div key={task.id} className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={"px-1.5 py-0.5 rounded text-[9px] font-medium " + (
+                          task.priority === "high" ? "bg-red-500/15 text-red-400" :
+                          task.priority === "low" ? "bg-gray-500/15 text-gray-400" :
+                          "bg-blue-500/15 text-blue-400"
+                        )}>
+                          {task.priority === "high" ? "🔴" : task.priority === "low" ? "⚪" : "🔵"} {task.priority}
+                        </span>
+                        <span className="text-xs text-[var(--text-muted)]">👤 {task.agentName}</span>
+                      </div>
+                      <div className="text-sm font-medium text-[var(--text)] mt-1">{task.title}</div>
+                      {task.description && (
+                        <div className="text-xs text-[var(--text-muted)] mt-0.5">{task.description}</div>
+                      )}
+                      {task.source && task.source.length > 0 && (
+                        <div className="mt-1.5 text-[10px] text-[var(--text-muted)]/60">
+                          原始消息：{task.source.filter(Boolean).slice(0, 2).join(" | ")}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button onClick={() => approvePendingTask(task.id, projects[0]?.id)}
+                        className="px-2 py-1 rounded text-xs bg-green-500/15 text-green-500 hover:bg-green-500/25 border border-green-500/30">
+                        ✅
+                      </button>
+                      <button onClick={() => rejectPendingTask(task.id)}
+                        className="px-2 py-1 rounded text-xs bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Review Modal */}

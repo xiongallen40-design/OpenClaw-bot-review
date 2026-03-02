@@ -10,22 +10,52 @@
           "name": "Shani",
           "emoji": "🔧",
           "tasks": [
-            { "text": "Fork + 跑通开源项目", "state": "done" },
-            { "text": "Gateway API Client + SQLite WAL", "state": "done" },
-            { "text": "SSE 实时推送替代轮询", "state": "done" },
-            { "text": "团队看板页面", "state": "done" },
-            { "text": "技能扫描修复", "state": "done" },
-            { "text": "项目任务板（按成员分组）", "state": "done" },
-            { "text": "门下省审核 + 状态机", "state": "doing" },
-            { "text": "像素办公室状态同步", "state": "todo" }
+            {
+              "text": "Fork + 跑通开源项目",
+              "state": "done"
+            },
+            {
+              "text": "Gateway API Client + SQLite WAL",
+              "state": "done"
+            },
+            {
+              "text": "SSE 实时推送替代轮询",
+              "state": "done"
+            },
+            {
+              "text": "团队看板页面",
+              "state": "done"
+            },
+            {
+              "text": "技能扫描修复",
+              "state": "done"
+            },
+            {
+              "text": "项目任务板（按成员分组）",
+              "state": "done"
+            },
+            {
+              "text": "门下省审核 + 状态机",
+              "state": "doing"
+            },
+            {
+              "text": "像素办公室状态同步",
+              "state": "todo"
+            }
           ]
         },
         {
           "name": "Ciri",
           "emoji": "🦁",
           "tasks": [
-            { "text": "协调团队任务分配", "state": "done" },
-            { "text": "审查 Dashboard 改造计划", "state": "done" }
+            {
+              "text": "协调团队任务分配",
+              "state": "done"
+            },
+            {
+              "text": "审查 Dashboard 改造计划",
+              "state": "done"
+            }
           ]
         },
         {
@@ -42,24 +72,66 @@
           "name": "Vesemir",
           "emoji": "🛡️",
           "tasks": []
+        },
+        {
+          "name": "Triss Merigold",
+          "emoji": "🤖",
+          "tasks": []
         }
       ]
     }
   ],
   "states": {
-    "todo": { "label": "待分配", "emoji": "📋", "color": "gray" },
-    "planning": { "label": "规划中", "emoji": "📝", "color": "blue" },
-    "review": { "label": "审核中", "emoji": "🛡️", "color": "orange" },
-    "doing": { "label": "执行中", "emoji": "🔨", "color": "purple" },
-    "done": { "label": "已完成", "emoji": "✅", "color": "green" },
-    "rejected": { "label": "已封驳", "emoji": "🚫", "color": "red" }
+    "todo": {
+      "label": "待分配",
+      "emoji": "📋",
+      "color": "gray"
+    },
+    "planning": {
+      "label": "规划中",
+      "emoji": "📝",
+      "color": "blue"
+    },
+    "review": {
+      "label": "审核中",
+      "emoji": "🛡️",
+      "color": "orange"
+    },
+    "doing": {
+      "label": "执行中",
+      "emoji": "🔨",
+      "color": "purple"
+    },
+    "done": {
+      "label": "已完成",
+      "emoji": "✅",
+      "color": "green"
+    },
+    "rejected": {
+      "label": "已封驳",
+      "emoji": "🚫",
+      "color": "red"
+    }
   },
   "transitions": {
-    "todo": ["planning", "doing"],
-    "planning": ["review"],
-    "review": ["doing", "rejected"],
-    "rejected": ["planning"],
-    "doing": ["done", "review"],
+    "todo": [
+      "planning",
+      "doing"
+    ],
+    "planning": [
+      "review"
+    ],
+    "review": [
+      "doing",
+      "rejected"
+    ],
+    "rejected": [
+      "planning"
+    ],
+    "doing": [
+      "done",
+      "review"
+    ],
     "done": []
   }
 }

@@ -1,0 +1,172 @@
+{
+  "tasks": [
+    {
+      "id": "mm99jalm4mxx",
+      "agentName": "Vesemir",
+      "title": "发送每日工作报告",
+      "description": "每天23:40之前将今日工作报告发送给Geralt",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 00:08 GMT+8] Vesemir，以后每天23:40之前，把今日工作直接发给我（sessions_send 到 agent:main:telegram:d..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmodn4",
+      "agentName": "Vesemir",
+      "title": "协助Ciri测试A2A通信",
+      "description": "使用message tool与Geralt联系，协助Ciri测试A2A通信",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 20:53 GMT+8] Vesemir，Ciri 这边在测试 A2A 通信。请直接用 message tool 给 Geralt（Telegram: 83416..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmjzwc",
+      "agentName": "Triss Merigold",
+      "title": "测试A2A通信",
+      "description": "使用message tool给Geralt发送消息",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 20:53 GMT+8] Triss，Ciri 这边在测试 A2A 通信。请直接用 message tool 给 Geralt（Telegram: 8341693..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalm15qg",
+      "agentName": "Triss Merigold",
+      "title": "每日工作报告",
+      "description": "每天23:40之前将今日工作发送给Geralt",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 00:08 GMT+8] Triss，以后每天23:40之前，把今日工作直接发给我（sessions_send 到 agent:main:telegram:def..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmnfnx",
+      "agentName": "Yennefer",
+      "title": "测试A2A通信",
+      "description": "用message tool给Geralt发送消息",
+      "priority": "medium",
+      "source": [],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmm5u3",
+      "agentName": "Yennefer",
+      "title": "每日工作报告",
+      "description": "每天23:40之前发送今日工作报告",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 20:53 GMT+8] Yen，Ciri 这边在测试 A2A 通信。请直接用 message tool 给 Geralt（Telegram: 834169309..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmhsxd",
+      "agentName": "Yennefer",
+      "title": "更换Ciri模型",
+      "description": "把Ciri的模型换成opus sonnet 4.6",
+      "priority": "high",
+      "source": [
+        "[Mon 2026-03-02 00:08 GMT+8] Yen，以后每天23:40之前，把今日工作直接发给我（sessions_send 到 agent:main:telegram:defau..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalm0j79",
+      "agentName": "Yennefer",
+      "title": "检查Ciri状态",
+      "description": "检查Ciri为什么不回信息",
+      "priority": "high",
+      "source": [
+        "把ciri的model换成opus sonnet 4.6"
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmk5ps",
+      "agentName": "Yennefer",
+      "title": "更换Yen模型",
+      "description": "把Yen自己的模型改成sonnet 4.6",
+      "priority": "medium",
+      "source": [
+        "ciri不回我的信息了，去看看她在干吗呢"
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmkiir",
+      "agentName": "Ciri",
+      "title": "测试跨agent通信",
+      "description": "测试跨agent通信",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 00:07 GMT+8] Ciri，测试跨 agent 通信。这条是 Shani 直接发给你的，不是 Geralt 转发。收到请确认。"
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalm234t",
+      "agentName": "Ciri",
+      "title": "设计人物和生成图",
+      "description": "负责写剧本，设计人物，生成图交给Geralt",
+      "priority": "high",
+      "source": [
+        "你负责写剧本，设计人物，生成图交给我",
+        "你负责写剧本，设计人物，生成图交给我"
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmtni1",
+      "agentName": "Ciri",
+      "title": "生成完整的剧本",
+      "description": "生成完整的剧本用于抖音爆款视频",
+      "priority": "high",
+      "source": [
+        "你负责写剧本，设计人物，生成图交给我"
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmxmzu",
+      "agentName": "Ciri",
+      "title": "提供中文prompt",
+      "description": "提供中文prompt用于seedance视频制作",
+      "priority": "medium",
+      "source": [
+        "我用seedance做中文视频投放中国市场，所以你需要给我中文的prompt"
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    },
+    {
+      "id": "mm99jalmz48a",
+      "agentName": "Shani",
+      "title": "每日工作报告",
+      "description": "每天23:40之前将今日工作报告发送给Geralt",
+      "priority": "medium",
+      "source": [
+        "[Mon 2026-03-02 00:08 GMT+8] Shani，以后每天23:40之前，把今日工作直接发给我（sessions_send 到 agent:main:telegram:def..."
+      ],
+      "status": "pending",
+      "createdAt": "2026-03-02T14:17:13.834Z"
+    }
+  ],
+  "lastSyncAt": "2026-03-02T14:17:13.834Z"
+}

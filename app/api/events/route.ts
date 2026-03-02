@@ -1,8 +1,6 @@
 import { subscribe, startCollector } from "@/lib/collector";
-import { startAutoSync } from "@/lib/auto-sync";
 
 startCollector(30000);
-startAutoSync(60000); // Auto-detect tasks every 60s
 
 export const dynamic = "force-dynamic";
 
