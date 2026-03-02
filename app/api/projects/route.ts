@@ -8,7 +8,7 @@ function readProjects() {
   try {
     return JSON.parse(fs.readFileSync(PROJECTS_PATH, "utf-8"));
   } catch {
-    return { projects: [] };
+    return { projects: [], states: {}, transitions: {} };
   }
 }
 
@@ -64,17 +64,61 @@ export async function POST(request: NextRequest) {
         if (!proj) return NextResponse.json({ error: "project not found" }, { status: 404 });
         const member = proj.members.find((m: any) => m.name === memberName);
         if (!member) return NextResponse.json({ error: "member not found" }, { status: 404 });
-        member.tasks.push({ text, done: false });
+        member.tasks.push({ text, state: "todo" });
         break;
       }
 
-      case "toggle-task": {
-        const { projectId: pid, memberName: mn, taskIndex } = body;
+      case "transition-task": {
+        const { projectId: pid, memberName: mn, taskIndex, newState } = body;
         const p = data.projects.find((p: any) => p.id === pid);
         if (!p) return NextResponse.json({ error: "not found" }, { status: 404 });
         const m = p.members.find((m: any) => m.name === mn);
         if (!m || !m.tasks[taskIndex]) return NextResponse.json({ error: "not found" }, { status: 404 });
-        m.tasks[taskIndex].done = !m.tasks[taskIndex].done;
+
+        const task = m.tasks[taskIndex];
+        const currentState = task.state || "todo";
+        const transitions = data.transitions || {};
+        const allowed = transitions[currentState] || [];
+
+        if (!allowed.includes(newState) && newState !== currentState) {
+          return NextResponse.json({
+            error: `不允许从 "${currentState}" 流转到 "${newState}"`,
+            allowed,
+          }, { status: 400 });
+        }
+
+        task.state = newState;
+        if (newState === "review") {
+          task.reviewRequestedAt = new Date().toISOString();
+        }
+        if (newState === "done") {
+          task.completedAt = new Date().toISOString();
+        }
+        if (newState === "rejected") {
+          task.rejectedAt = new Date().toISOString();
+          task.rejectionReason = body.reason || "";
+        }
+        break;
+      }
+
+      // Legacy toggle support (maps to state transitions)
+      case "toggle-task": {
+        const { projectId: tpid, memberName: tmn, taskIndex: tti } = body;
+        const tp = data.projects.find((p: any) => p.id === tpid);
+        if (!tp) return NextResponse.json({ error: "not found" }, { status: 404 });
+        const tm = tp.members.find((m: any) => m.name === tmn);
+        if (!tm || !tm.tasks[tti]) return NextResponse.json({ error: "not found" }, { status: 404 });
+        const task = tm.tasks[tti];
+        // Simple toggle: done ↔ todo
+        if (task.state === "done") {
+          task.state = "todo";
+        } else if (task.done !== undefined) {
+          // Migration: old format
+          task.state = task.done ? "todo" : "done";
+          delete task.done;
+        } else {
+          task.state = "done";
+        }
         break;
       }
 
@@ -88,12 +132,37 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case "submit-review": {
+        // Vesemir submits review result
+        const { projectId: rpid, memberName: rmn, taskIndex: rti, verdict, reason } = body;
+        const rp = data.projects.find((p: any) => p.id === rpid);
+        if (!rp) return NextResponse.json({ error: "not found" }, { status: 404 });
+        const rm = rp.members.find((m: any) => m.name === rmn);
+        if (!rm || !rm.tasks[rti]) return NextResponse.json({ error: "not found" }, { status: 404 });
+        const task = rm.tasks[rti];
+
+        if (task.state !== "review") {
+          return NextResponse.json({ error: "任务不在审核状态" }, { status: 400 });
+        }
+
+        if (verdict === "approved") {
+          task.state = "doing";
+          task.reviewResult = { verdict: "approved", reason, reviewedAt: new Date().toISOString() };
+        } else if (verdict === "rejected") {
+          task.state = "rejected";
+          task.reviewResult = { verdict: "rejected", reason, reviewedAt: new Date().toISOString() };
+          task.rejectedAt = new Date().toISOString();
+          task.rejectionReason = reason || "";
+        }
+        break;
+      }
+
       default:
         return NextResponse.json({ error: "unknown action" }, { status: 400 });
     }
 
     writeProjects(data);
-    return NextResponse.json(data);
+    return NextResponse.json({ ...data, ok: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

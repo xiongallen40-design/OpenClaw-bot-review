@@ -10,132 +10,22 @@
           "name": "Shani",
           "emoji": "🔧",
           "tasks": [
-            {
-              "text": "Fork + 跑通开源项目",
-              "done": true
-            },
-            {
-              "text": "Gateway API Client + SQLite WAL",
-              "done": true
-            },
-            {
-              "text": "SSE 实时推送替代轮询",
-              "done": true
-            },
-            {
-              "text": "团队看板页面",
-              "done": true
-            },
-            {
-              "text": "技能扫描修复",
-              "done": true
-            },
-            {
-              "text": "项目任务板（按成员分组）",
-              "done": false
-            },
-            {
-              "text": "像素办公室状态同步",
-              "done": true
-            }
+            { "text": "Fork + 跑通开源项目", "state": "done" },
+            { "text": "Gateway API Client + SQLite WAL", "state": "done" },
+            { "text": "SSE 实时推送替代轮询", "state": "done" },
+            { "text": "团队看板页面", "state": "done" },
+            { "text": "技能扫描修复", "state": "done" },
+            { "text": "项目任务板（按成员分组）", "state": "done" },
+            { "text": "门下省审核 + 状态机", "state": "doing" },
+            { "text": "像素办公室状态同步", "state": "todo" }
           ]
         },
         {
           "name": "Ciri",
           "emoji": "🦁",
           "tasks": [
-            {
-              "text": "协调团队任务分配",
-              "done": true
-            },
-            {
-              "text": "审查 Dashboard 改造计划",
-              "done": true
-            },
-            {
-              "text": "在湖南长沙。给你看看我就把的名字和风格的pdf",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-26T12:27:22.506Z"
-            },
-            {
-              "text": "好 做出来了给你看。然后我目前在运营着一个鸡尾酒酒吧，我想把你加入进来作为一份子。你觉得你可以在哪些方面帮到我",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-26T12:17:56.002Z"
-            },
-            {
-              "text": "内容是什么，以后给我发openclaw的新版本要给我说更新内容",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-26T10:05:16.508Z"
-            },
-            {
-              "text": "这张图片在seedance上提示我们不能用真人的图片来生成，seedance的最新政策。有什么别的办法吗",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T19:53:41.638Z"
-            },
-            {
-              "text": "那个暂时不用，我先去搞视频",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T18:17:50.032Z"
-            },
-            {
-              "text": "douyin hot trend和elite longterm memory可以给团队配上",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T16:13:08.540Z"
-            },
-            {
-              "text": "好，我等下先回去做第一集。我现在需要女主的详细提示词，需要非常美的女主。",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T15:47:28.622Z"
-            },
-            {
-              "text": "我用seedance做中文视频投放中国市场，所以你需要给我中文的prompt",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T15:43:37.670Z"
-            },
-            {
-              "text": "我们来开始搞抖音爆款视频的准备。每天下午5点准时发布。我会用seedance去制作视频，目前seedance只能一次制作15s的视频，所以我还会用剪映剪辑。这些不用你管。 我需要你来生成完整的剧...",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T13:22:06.276Z"
-            },
-            {
-              "text": "你负责写剧本，设计人物，生成图交给我",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T10:10:30.413Z"
-            },
-            {
-              "text": "程序员主角我需要漂亮的女生",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T10:10:30.413Z"
-            },
-            {
-              "text": "需要深入吗",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T10:10:30.408Z"
-            },
-            {
-              "text": "可以 我先搞出来试试",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T10:10:30.407Z"
-            },
-            {
-              "text": "都可以 让yen去看看 记住别让我被人告了",
-              "done": false,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T10:10:30.406Z"
-            }
+            { "text": "协调团队任务分配", "state": "done" },
+            { "text": "审查 Dashboard 改造计划", "state": "done" }
           ]
         },
         {
@@ -146,26 +36,7 @@
         {
           "name": "Yennefer",
           "emoji": "💜",
-          "tasks": [
-            {
-              "text": "把ciri的model换成opus sonnet 4.6",
-              "done": true,
-              "autoDetected": true,
-              "detectedAt": "2026-02-26T13:37:50.506Z"
-            },
-            {
-              "text": "ciri不回我的信息了，去看看她在干吗呢",
-              "done": true,
-              "autoDetected": true,
-              "detectedAt": "2026-02-26T13:35:52.142Z"
-            },
-            {
-              "text": "yen，把你自己的model改成sonnet 4.6",
-              "done": true,
-              "autoDetected": true,
-              "detectedAt": "2026-02-25T10:05:53.503Z"
-            }
-          ]
+          "tasks": []
         },
         {
           "name": "Vesemir",
@@ -174,5 +45,21 @@
         }
       ]
     }
-  ]
+  ],
+  "states": {
+    "todo": { "label": "待分配", "emoji": "📋", "color": "gray" },
+    "planning": { "label": "规划中", "emoji": "📝", "color": "blue" },
+    "review": { "label": "审核中", "emoji": "🛡️", "color": "orange" },
+    "doing": { "label": "执行中", "emoji": "🔨", "color": "purple" },
+    "done": { "label": "已完成", "emoji": "✅", "color": "green" },
+    "rejected": { "label": "已封驳", "emoji": "🚫", "color": "red" }
+  },
+  "transitions": {
+    "todo": ["planning", "doing"],
+    "planning": ["review"],
+    "review": ["doing", "rejected"],
+    "rejected": ["planning"],
+    "doing": ["done", "review"],
+    "done": []
+  }
 }
